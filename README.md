@@ -1,7 +1,7 @@
 
 ## BurgerBuilder
 
-A React-Redux fictional burger restaurant app for users to select ingredients as they build burgers on order
+A React-Hooks fictional burger restaurant app for users to select ingredients as they build burgers on order
 
 ### Run App
 
