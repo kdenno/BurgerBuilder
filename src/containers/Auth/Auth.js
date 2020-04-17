@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
 import styles from "./Auth.module.css";
@@ -9,9 +9,8 @@ import Spinner from "../../components/UI/Spinner/Spinner";
 import * as checks from "../../shared/utility";
  
 
-class Auth extends Component {
-  state = {
-    authForm: {
+const auth = props => {
+  const [authForm, setAuthForm] = useState({
       email: {
         elementtype: "input",
         elementconfig: {
@@ -40,46 +39,45 @@ class Auth extends Component {
         valid: false,
         touched: false,
       },
-    },
-    isSignUp: true
-  };
-  componentDidMount() {
-    if(!this.props.building && this.props.authRedirectPath !== '/') {
+   
+    
+  });
+  const [isSignUp, SetIsSignUp] = useState(true);
+  useState(() => {
+    if(!props.building && props.authRedirectPath !== '/') {
       // user was not builidng, set route back to home page
-      this.props.setReturnRoute('/');
+      props.setReturnRoute('/');
 
     }
 
-  }
-onInputChangedHandler=(event, controlName) => {
+  }, []);
+
+const onInputChangedHandler=(event, controlName) => {
     const updatedForm = {
-        ...this.state.authForm,
+        ...authForm,
         [controlName]: {
-            ...this.state.authForm[controlName],
+            ...authForm[controlName],
             value: event.target.value,
             touched: true,
-            valid: checks.checkValidity(event.target.value, this.state.authForm[controlName].validation)
+            valid: checks.checkValidity(event.target.value, authForm[controlName].validation)
         }
     }
-    this.setState({authForm: updatedForm});
+    setAuthForm(updatedForm);
 
 }
-onsubmitHandler = (event) => {
+const onsubmitHandler = (event) => {
     // prevent page reload
     event.preventDefault();
-    this.props.onAuth(this.state.authForm.email.value, this.state.authForm.password.value, this.state.isSignUp);
+    props.onAuth(authForm.email.value, authForm.password.value, isSignUp);
 
 }
 switchMode = () => {
-    this.setState(prevState =>  { 
-        return {isSignUp: !prevState.isSignUp} 
-    });
+  SetIsSignUp(!IsSignUp);
 }
 
-  render() {
     let formArrayElements = [];
-    for (let key in this.state.authForm) {
-      formArrayElements.push({id: key, config: this.state.authForm[key]});
+    for (let key in authForm) {
+      formArrayElements.push({id: key, config: authForm[key]});
     }
     let form = formArrayElements.map(formElement => <Input 
         key={formElement.id}
@@ -89,33 +87,33 @@ switchMode = () => {
         isvalid={formElement.config.valid} 
         shouldvalidate={formElement.config.validation}
         touched = {formElement.config.touched}
-        changed={event => this.onInputChangedHandler(event, formElement.id)}/>);
-        if(this.props.loading) {
+        changed={event => onInputChangedHandler(event, formElement.id)}/>);
+        if(props.loading) {
             form = <Spinner/>
         }
         let errorMessage = null;
-        if(this.props.error) {
-        errorMessage = (<p>{this.props.error.message}</p>)
+        if(props.error) {
+        errorMessage = (<p>{props.error.message}</p>)
 
         }
         let routeAway = null;
-        if(this.props.isAuthenticated) {
+        if(props.isAuthenticated) {
           
-          routeAway = <Redirect to={this.props.authRedirectPath} />
+          routeAway = <Redirect to={props.authRedirectPath} />
         }
     return (
       <div className={styles.Auth}>
         {routeAway}
           {errorMessage}
-        <form onSubmit={this.onsubmitHandler}>
+        <form onSubmit={onsubmitHandler}>
             {form}
             <Button type="Success">SUBMIT</Button>
      </form>
-      <Button type="Danger" clicked={this.switchMode}>SWITCH TO {this.state.isSignUp ? 'SIGN IN': 'SIGN UP'}</Button>
+      <Button type="Danger" clicked={switchMode}>SWITCH TO {isSignUp ? 'SIGN IN': 'SIGN UP'}</Button>
        
       </div>
     );
-  }
+  
 }
 const mapStateToProps = state => {
     return {
@@ -135,4 +133,4 @@ const mapDispatchToProps = dispatch => {
 
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(Auth);
+export default connect(mapStateToProps, mapDispatchToProps)(auth);
