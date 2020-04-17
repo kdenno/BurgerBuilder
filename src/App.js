@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import Layout from "./components/Layout/Layout";
 import BurgerBuilder from "./containers/BurgerBuilder/BurgerBuilder";
 import Checkout from "./containers/Checkout/Checkout";
@@ -10,6 +10,10 @@ import Logout from "./containers/Auth/Logout/Logout";
 import { connect } from "react-redux";
 import * as Actions from "./store/actions/index";
 import { Route, Switch, withRouter, Redirect } from "react-router-dom";
+
+const Checkout = React.lazy(() => import("./containers/Checkout/Checkout"));
+const Orders = React.lazy(() => import("./containers/Orders/Orders"));
+const Auth = React.lazy(() => import("./containers/Auth/Auth"));
 
 const app = (props) => {
   useEffect(() => {
@@ -25,9 +29,9 @@ const app = (props) => {
   if (props.isAuthenticated) {
     routes = (
       <Switch>
-        <Route path="/checkout" component={Checkout} />
-        <Route path="/orders" component={Orders} />
-        <Route path="/auth" component={Auth} />
+        <Route path="/checkout" render={() => <Checkout />} />
+        <Route path="/orders" render={() => <Orders />} />
+        <Route path="/auth" render={() => <Auth />} />
         <Route path="/logout" component={Logout} />
         <Route path="/" exact component={BurgerBuilder} />
         <Redirect to="/" />
@@ -36,7 +40,9 @@ const app = (props) => {
   }
   return (
     <div>
-      <Layout>{routes}</Layout>
+      <Layout>
+        <Suspense fallback={<p>...Loading</p>}>{routes}</Suspense>
+      </Layout>
     </div>
   );
 };
