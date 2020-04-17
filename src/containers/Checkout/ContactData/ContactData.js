@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import Button from "../../../components/UI/Button/Button";
 import styles from "./ContactData.module.css";
 import Spinner from "../../../components/UI/Spinner/Spinner";
@@ -9,9 +9,8 @@ import axios from "../../../axios-orders";
 import * as orderActions from "../../../store/actions/order";
 import * as checks from "../../../shared/utility";
 
-class ContactData extends Component {
-  state = {
-    orderForm: {
+const contactData = (props) => {
+ cosnst [orderForm, setOrderForm] = useState({
       name: {
         elementtype: "input",
         elementconfig: {
@@ -94,29 +93,29 @@ class ContactData extends Component {
         value: "cheapest",
 
       }
-    },
-    formIsValid: false
-  };
-  orderSubmitHandler = event => {
+    });
+    const [formIsValid, setFormValid] = useState(false);
+  
+  const orderSubmitHandler = event => {
     event.preventDefault();
 
-    this.props.onLoading();
+    props.onLoading();
     // transformd data and create something like {name: deno, country: uganda}
     const formData = {};
-    for(let formElementIdentifier in this.state.orderForm){
-      formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
+    for(let formElementIdentifier in orderForm){
+      formData[formElementIdentifier] = orderForm[formElementIdentifier].value;
     }
     const order = {
-      ingredientes: this.props.ings,
-      price: this.props.price.toFixed(2),
+      ingredientes: props.ings,
+      price: props.price.toFixed(2),
       orderData: formData
     };
-    this.props.onOrderBurger(order, this.props.token);
+    props.onOrderBurger(order, props.token);
   };
  
-  onInputChangedHandler = (event, inputId) => {
+  const onInputChangedHandler = (event, inputId) => {
     // let's try to get access to the input value and change it
-    const updatedOrderForm = { ...this.state.orderForm }; // but remember this doenst do a deep clone
+    const updatedOrderForm = { ...orderForm }; // but remember this doenst do a deep clone
     // now that we got access to the top tier objects we need to clone again
     const updatedFormElement = { ...updatedOrderForm[inputId] };
     updatedFormElement.value = event.target.value;
@@ -127,19 +126,20 @@ class ContactData extends Component {
       formValid = updatedOrderForm[eachkey].valid && formValid;
     }
     updatedOrderForm[inputId] = updatedFormElement;
-    this.setState({ orderForm: updatedOrderForm, formValid: formValid});
+    setOrderForm(updatedOrderForm);
+    setFormValid(formIsValid);
   };
 
-  render() {
+
     let formArrayElements = [];
-    for (let key in this.state.orderForm) {
+    for (let key in orderForm) {
       formArrayElements.push({
         id: key,
-        config: this.state.orderForm[key]
+        config: orderForm[key]
       });
     }
     let theform = (
-      <form onSubmit={this.orderSubmitHandler}>
+      <form onSubmit={orderSubmitHandler}>
         {formArrayElements.map(formElement => (
           <Input
             key={formElement.id}
@@ -149,16 +149,14 @@ class ContactData extends Component {
             isvalid={formElement.config.valid} 
             shouldvalidate={formElement.config.validation}
             touched = {formElement.config.touched}
-            changed={event => this.onInputChangedHandler(event, formElement.id)}
+            changed={event => onInputChangedHandler(event, formElement.id)}
           />
         ))}
 
-        <Button type="Success" disabled={!this.state.formValid}>
-          ORDER NOW
-        </Button>
+        <Button type="Success" disabled={!formIsValid}> ORDER NOW </Button>
       </form>
     );
-    if (this.props.loading) {
+    if (props.loading) {
       theform = <Spinner />;
     }
     return (
@@ -167,7 +165,7 @@ class ContactData extends Component {
         {theform}
       </div>
     );
-  }
+  
 }
 const mapStateToProps = state => {
   return {
@@ -183,4 +181,4 @@ const mapDispatchToProps = dispatch => {
   onLoading: () => dispatch(orderActions.purchaseBurgerInit())
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(contactData, axios));
