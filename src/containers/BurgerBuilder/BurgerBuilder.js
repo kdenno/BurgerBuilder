@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import {connect} from 'react-redux';
 
 import Aux from "../../hoc/Aux";
@@ -12,15 +12,17 @@ import axios from "../../axios-orders";
 import * as Actions from "../../store/actions/index";
 
 
-export class BurgerBuilder extends Component {
+const burgerBuilder = props => {
   state = {
     purchasing: false
   };
-  componentDidMount() {
+  const [purchasing, setPurchasing] = useState(false);
+
+  useEffect(() => {
     this.props.onInitIngredients();
-   
-  }
-  updatePurchasable(ingredients) {
+  }, []);
+
+  const updatePurchasable = (ingredients) => {
     const totalIngredientPrice = Object.keys(ingredients)
       .map(key => {
         return ingredients[key];
@@ -30,25 +32,25 @@ export class BurgerBuilder extends Component {
       }, 0);
     return totalIngredientPrice > 0 ;
   }
-  purchasingHandler = () => {
-    if(this.props.isAuthenticated) {
-    this.setState({ purchasing: true });
+  const purchasingHandler = () => {
+    if(props.isAuthenticated) {
+    setPurchasing(true);
   }else {
-    this.props.setReturnPath('/checkout');
-    this.props.history.push("/auth");
+    props.setReturnPath('/checkout');
+    props.history.push("/auth");
   }
   };
   purchaseCancelledHandler = () => {
-    this.setState({ purchasing: false });
+    setPurchasing(false);
   };
   buyerActionHandler = action => {
     switch (action) {
       case "cancel":
-        this.purchaseCancelledHandler();
+        purchaseCancelledHandler();
         break;
       case "checkout":
-        this.props.onCheckoutInit();
-        this.props.history.push("/checkout");
+        props.onCheckoutInit();
+        props.history.push("/checkout");
         break;
 
       default:
@@ -56,30 +58,29 @@ export class BurgerBuilder extends Component {
     }
   };
 
-  render() {
     let orderSummary = null;
 
-    let burger = this.props.error ?<p>Ingredients cannot be fetched</p>: <Spinner />
+    let burger = props.error ?<p>Ingredients cannot be fetched</p>: <Spinner />
  
-    if (this.props.ings) {
+    if (props.ings) {
       burger = (
         <Aux>
-          <Burger ingredients={this.props.ings} />
+          <Burger ingredients={props.ings} />
           <BuildControls
-            ingredientAdded={this.props.onIngredientAdded}
-            ingredientRemoved={this.props.onIngredientRemoved}
-            price={this.props.price}
-            purhasable={this.updatePurchasable(this.props.ings)}
-            ordered={this.purchasingHandler}
-            isAuth = {this.props.isAuthenticated}
+            ingredientAdded={props.onIngredientAdded}
+            ingredientRemoved={props.onIngredientRemoved}
+            price={props.price}
+            purhasable={updatePurchasable(props.ings)}
+            ordered={purchasingHandler}
+            isAuth = {props.isAuthenticated}
           />
         </Aux>
       );
       orderSummary = (
         <OrderSummary
-          buyerAction={this.buyerActionHandler}
-          ingredients={this.props.ings}
-          price={this.props.price}
+          buyerAction={buyerActionHandler}
+          ingredients={props.ings}
+          price={props.price}
         />
       );
      
@@ -87,15 +88,15 @@ export class BurgerBuilder extends Component {
     return (
       <Aux>
         <Overlay
-          show={this.state.purchasing}
-          purchaseCancelled={this.purchaseCancelledHandler}
+          show={purchasing}
+          purchaseCancelled={purchaseCancelledHandler}
         >
           {orderSummary}
         </Overlay>
         {burger}
       </Aux>
     );
-  }
+  
 }
 const mapStateToProps = state => {
   return {
@@ -117,4 +118,4 @@ const mapDispatchToProps = dispatch => {
   }
 
 }
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(BurgerBuilder, axios));
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(burgerBuilder, axios));
