@@ -1,14 +1,14 @@
-import React, { Component } from "react";
+import React  from "react";
 import Button from "../../UI/Button/Button";
 
-class OrderSummary extends Component {
+const orderSummary = (prop) => {
   // could be a functional component
-  render() {
-    const ingredientsArr = Object.keys(this.props.ingredients).map(item => {
+
+    const ingredientsArr = Object.keys(props.ingredients).map(item => {
       return (
         <li key={item}>
           <span style={{ textTransform: "capitalize" }}>{item}</span>:{" "}
-          {this.props.ingredients[item]}
+          {props.ingredients[item]}
         </li>
       );
     });
@@ -19,17 +19,17 @@ class OrderSummary extends Component {
         <p>A delicious burger with the following ingredients</p>
         <ul>{ingredientsArr}</ul>
         <p>
-          <strong>Total Price: {this.props.price.toFixed(2)}</strong>
+          <strong>Total Price: {props.price.toFixed(2)}</strong>
         </p>
         <p>Continue to Checkout?</p>
-        <Button type="Danger" clicked={() => this.props.buyerAction("cancel")}>
+        <Button type="Danger" clicked={() => props.buyerAction("cancel")}>
           Cancel
         </Button>
-        <Button type="Success" clicked={() => this.props.buyerAction("checkout")}>
+        <Button type="Success" clicked={() => props.buyerAction("checkout")}>
           Buy Now
         </Button>
       </div>
     );
-  }
+  
 }
-export default OrderSummary;
+export default orderSummary;
