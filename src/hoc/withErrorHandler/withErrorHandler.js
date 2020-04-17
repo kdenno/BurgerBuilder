@@ -1,49 +1,45 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import Overlay from "../../components/UI/Overlay/Overlay";
 import Aux from "../Aux";
 
 // remember everything is react should be treated like a function so this function should show the component that triggered the error and show the error its self
 const withErrorHandler = (WrappedComponent, axios) => {
   // the class is anonymous becasue i dont use it i just return it, its a class factory essentially
-  return class extends Component {
-    state = {
-      error: null
-    };
-    // use componentWillMount because it triggers before the componentDidMount() for the child components is triggered or else the interceptors wont be available
-    componentWillMount() {
+  return props => {
+    const [error, setError] = useState(null);
       // clear errors on every new request
-      this.reqInterceptor = axios.interceptors.request.use(req => {
-        this.setState({ error: null });
+      const reqInterceptor = axios.interceptors.request.use(req => {
+        setError(null);
         return req;
       });
-      this.resInterceptor = axios.interceptors.response.use(
-        res => res,
-        error => {
-          this.setState({ error: error });
+      const resInterceptor = axios.interceptors.response.use(res => res, err => {
+          setError(err);
         }
       );
-    }
-    componentWillUnmount() {
-      // prevent memory leak
-      axios.interceptors.request.eject(this.reqInterceptor);
-      axios.interceptors.response.eject(this.resInterceptor);
-    }
-    errorConfrimedHandler = () => {
-      this.setState({ error: null });
+      useEffect(() => {
+        // clean up whenever our interceptors change
+        return () => {
+          axios.interceptors.request.eject(reqInterceptor);
+          axios.interceptors.response.eject(resInterceptor);
+        }
+      }, [reqInterceptor, resInterceptor]);
+    
+    const errorConfrimedHandler = () => {
+      setError(null);
     };
-    render() {
+  
       return (
         <Aux>
           <Overlay
-            show={this.state.error}
-            purchaseCancelled={this.errorConfrimedHandler}
+            show={error}
+            purchaseCancelled={errorConfrimedHandler}
           >
-            {this.state.error ? this.state.error.message : null}
+            {error ? error.message : null}
           </Overlay>
-          <WrappedComponent {...this.props} />
+          <WrappedComponent {...props} />
         </Aux>
       );
-    }
+    
   };
 };
 export default withErrorHandler;
